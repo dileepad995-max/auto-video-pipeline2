@@ -1,0 +1,3 @@
+google-genai
+gtts
+moviepy==1.0.3
