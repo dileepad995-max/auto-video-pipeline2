@@ -4,7 +4,6 @@ from gtts import gTTS
 from moviepy.editor import *
 
 def generate_script():
-    # Initialize Gemini client using the correct modern SDK
     client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
     
     prompt = (
@@ -13,9 +12,8 @@ def generate_script():
         "and keep high audience retention. Output ONLY the raw script text, no extra markdown or headings."
     )
     
-    # Using the recommended active model to avoid 404 errors
     response = client.models.generate_content(
-        model='gemini-3.6-flash',
+        model='gemini-2.5-flash',
         contents=prompt,
     )
     return response.text.strip()
@@ -34,10 +32,10 @@ def main():
     audio_clip = AudioFileClip(audio_path)
     duration = audio_clip.duration
 
-    # Exact 9:16 vertical short background (1080 width, 1920 height)
+    # 1. මෙන්න මෙතන තමයි හරියටම 9:16 වර්ටිකල් සයිස් එක (1080x1920) දීලා තියෙන්නේ
     bg_clip = ColorClip(size=(1080, 1920), color=(15, 15, 15), duration=duration)
 
-    # Clean text clip with caption method to prevent text overlap & clipping within 9:16 frame
+    # 2. මෙන්න මෙතන අකුරු වල සයිස් එක (50) සහ ස්ක්‍රීන් එකට මැදින් වැටෙන්න සෙට් කරලා තියෙන්නේ
     txt_clip = TextClip(
         script_text,
         fontsize=50,
