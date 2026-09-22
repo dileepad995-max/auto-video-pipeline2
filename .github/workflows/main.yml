@@ -1,0 +1,65 @@
+import os
+from google import genai
+from gtts import gTTS
+from moviepy.editor import *
+
+def generate_script():
+    client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+    
+    prompt = (
+        "Write a 50-second viral dark psychology or stoicism short script for a US/UK audience. "
+        "It must start with a powerful psychological hook in the first 3 seconds, use deep narration style, "
+        "and keep high audience retention. Output ONLY the raw script text, no extra markdown or headings."
+    )
+    
+    response = client.models.generate_content(
+        model='gemini-2.5-flash',
+        contents=prompt,
+    )
+    return response.text.strip()
+
+def main():
+    print("Generating viral dark psychology script...")
+    script_text = generate_script()
+    print(f"Script generated successfully: {script_text[:60]}...")
+
+    print("Generating voiceover audio using gTTS...")
+    tts = gTTS(text=script_text, lang='en', slow=False)
+    audio_path = "audio.mp3"
+    tts.save(audio_path)
+
+    print("Rendering video with MoviePy in exact 9:16 (1080x1920) format...")
+    audio_clip = AudioFileClip(audio_path)
+    duration = audio_clip.duration
+
+    # Exact 9:16 vertical short background (1080 width, 1920 height)
+    bg_clip = ColorClip(size=(1080, 1920), color=(15, 15, 15), duration=duration)
+
+    # Clean text clip with caption method to prevent text overlap & clipping within 9:16 frame
+    txt_clip = TextClip(
+        script_text,
+        fontsize=50,
+        color='white',
+        font='Arial-Bold',
+        stroke_color='black',
+        stroke_width=2,
+        method='caption',
+        size=(int(1080 * 0.85), int(1920 * 0.6))
+    ).set_duration(duration).set_position('center')
+
+    # Composite video and attach audio
+    video = CompositeVideoClip([bg_clip, txt_clip])
+    video = video.set_audio(audio_clip)
+
+    output_path = "output.mp4"
+    video.write_videofile(
+        output_path,
+        fps=24,
+        codec='libx264',
+        audio_codec='aac',
+        preset='medium'
+    )
+    print(f"Video successfully generated at {output_path}")
+
+if __name__ == "__main__":
+    main()
